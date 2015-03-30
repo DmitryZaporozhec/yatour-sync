@@ -23,49 +23,40 @@ public class MainWindow extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JFileChooser localPathChooser;
 	private JFileChooser remotePathChooser;
-	private JButton jbOpenLocalContainer;
-	private JButton jbOpenRemoteContainer;
-	private JButton jbSyncAll = new JButton("Sync Now!");
 
 	private JList<File> outputFilesView = new JList<File>();
-	private JList<File> inputFilesView = new JList<File>();
 
-	private List<File> inputFiles = new ArrayList<File>();
 	private List<File> outputFiles = new ArrayList<File>();
 
 	public MainWindow() {
 		super("Yatour sync");
+		LeftMenu leftMenu = new LeftMenu();
+		final LibraryMenu libraryMenu = new LibraryMenu();
 		this.setResizable(false);
 		JPanel p = new JPanel();
 		p.setLayout(new BorderLayout(12, 12));
 		p.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-		p.setPreferredSize(new Dimension(600, 600));
+		p.setPreferredSize(new Dimension(1024, 768));
 		this.setContentPane(p);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		jbOpenLocalContainer = new JButton("Source");
-		jbOpenLocalContainer.setPreferredSize(new Dimension(120, 15));
 
-		jbOpenRemoteContainer = new JButton("Target");
-		jbOpenRemoteContainer.setPreferredSize(new Dimension(120, 15));
-
-		inputFilesView.setPreferredSize(new Dimension(250, 500));
 		outputFilesView.setPreferredSize(new Dimension(250, 500));
 		outputFilesView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		jbOpenLocalContainer.addActionListener(new ActionListener() {
+		leftMenu.getJbOpenLocalContainer().addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				File f = onShowChooser(localPathChooser);
 				if (f != null) {
-					inputFiles.add(f);
-					inputFilesView.setListData(inputFiles
-							.toArray(new File[inputFiles.size()]));
+					libraryMenu.getInputFiles().add(f);
+					libraryMenu.getInputFilesView().setListData(libraryMenu.getInputFiles()
+							.toArray(new File[libraryMenu.getInputFiles().size()]));
 				}
 			}
 		});
 
-		jbOpenRemoteContainer.addActionListener(new ActionListener() {
+		leftMenu.getJbOpenRemoteContainer().addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				File f = onShowChooser(remotePathChooser);
@@ -77,12 +68,12 @@ public class MainWindow extends JFrame {
 			}
 		});
 
-		jbSyncAll.addActionListener(new ActionListener() {
+		leftMenu.getJbSyncAll().addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Synchronization sync = new Synchronization();
 				try {
-					if (inputFilesView.getModel().getSize() == 0) {
+					if (libraryMenu.getInputFilesView().getModel().getSize() == 0) {
 						JOptionPane.showMessageDialog(MainWindow.this,
 								"Source folder/s is not define!");
 						return;
@@ -95,10 +86,10 @@ public class MainWindow extends JFrame {
 					List<File> in = null;
 					if (outputFilesView.isSelectionEmpty())
 						outputFilesView.setSelectedIndex(0);
-					if (inputFilesView.isSelectionEmpty()) {
-						in = inputFiles;
+					if (libraryMenu.getInputFilesView().isSelectionEmpty()) {
+						in = libraryMenu.getInputFiles();
 					} else {
-						in = inputFilesView.getSelectedValuesList();
+						in = libraryMenu.getInputFilesView().getSelectedValuesList();
 					}
 					sync.sync(in,
 							outputFilesView.getSelectedValue());
@@ -112,13 +103,10 @@ public class MainWindow extends JFrame {
 		localPathChooser = initFileChooser();
 		remotePathChooser = initFileChooser();
 
-		p.add(jbOpenLocalContainer, BorderLayout.PAGE_START);
-		p.add(inputFilesView, BorderLayout.LINE_START);
+		p.add(libraryMenu, BorderLayout.CENTER);
 
-		p.add(jbOpenRemoteContainer, BorderLayout.PAGE_END);
 		p.add(outputFilesView, BorderLayout.LINE_END);
-
-		p.add(jbSyncAll, BorderLayout.CENTER);
+		p.add(leftMenu, BorderLayout.LINE_START);
 		this.pack();
 		this.setVisible(true);
 	}
@@ -143,14 +131,6 @@ public class MainWindow extends JFrame {
 
 	public void setRemotePathChooser(JFileChooser remotePathChooser) {
 		this.remotePathChooser = remotePathChooser;
-	}
-
-	public List<File> getInputFiles() {
-		return inputFiles;
-	}
-
-	public void setInputFiles(List<File> inputFiles) {
-		this.inputFiles = inputFiles;
 	}
 
 	public List<File> getOutputFiles() {
