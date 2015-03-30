@@ -2,6 +2,7 @@ package ui;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -15,18 +16,19 @@ public class LeftMenu extends JPanel {
 	private JButton jbSyncAll;
 	public LeftMenu() {
 		super();
-		this.setPreferredSize(new Dimension(250, 768));
-		this.setLayout(new GridLayout(30, 1));
+		this.setPreferredSize(new Dimension(200, 300));
+		this.setSize(new Dimension(200, 300));
+		this.setBounds(new Rectangle(new Dimension(200, 300)));
+		this.setLayout(new GridLayout(3,1));
 		
 		jbSyncAll = new JButton("Поехали!");
+		jbSyncAll.setAlignmentX(CENTER_ALIGNMENT);
 		
-		jbOpenLocalContainer = new JButton("Добавить в библиотеку");
-//		jbOpenLocalContainer.setSize(new Dimension(250, 20));
-		jbOpenLocalContainer.setPreferredSize(new Dimension(250, 20));
-
+		jbOpenLocalContainer = new JButton("Добавить библиотеку");
+		jbOpenLocalContainer.setAlignmentX(CENTER_ALIGNMENT);
+		
 		jbOpenRemoteContainer = new JButton("Выбрать флешку");
-		jbOpenRemoteContainer.setPreferredSize(new Dimension(250, 20));
-		
+		jbOpenRemoteContainer.setAlignmentX(CENTER_ALIGNMENT);
 		this.add(jbOpenLocalContainer);
 		this.add(jbOpenRemoteContainer);
 		this.add(jbSyncAll);

@@ -25,7 +25,6 @@ public class LibraryMenu extends JPanel {
 	public LibraryMenu() {
 		super();
 		jlLibraryLabel = new JLabel("Библиотека");
-		this.setPreferredSize(new Dimension(600, 600));
 		this.setLayout(new BorderLayout(12, 12));
 		inputFilesView.addMouseListener(new InputViewListener(inputFilesView,inputFiles));
 		inputFilesView.setAutoscrolls(true);

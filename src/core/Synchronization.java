@@ -11,9 +11,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.JLabel;
+
 public class Synchronization {
 
-	public int sync(List<File> local, File outputFolder) throws Exception {
+	public int sync(List<File> local, File outputFolder, JLabel output)
+			throws Exception {
 		long time = System.currentTimeMillis();
 		// Get fiels from pathes
 		File inputFolder = null;
@@ -32,13 +35,13 @@ public class Synchronization {
 		if (outputFolder == null) {
 			throw new Exception("Remote folder is empty!");
 		}
-		System.out.println("Output folder is=" + outputFolder);
+		output.setText("Output folder is=" + outputFolder);
 
 		for (File loc : local) {
-			System.out.println("Input folder is=" + loc);
+			output.setText("Input folder is=" + loc);
 
 			if (loc == null) {
-				System.out.println("Local folder is empty!");
+				output.setText("Local folder is empty!");
 				continue;
 			}
 
@@ -47,9 +50,6 @@ public class Synchronization {
 			if (!inputFolder.isDirectory() || !outputFolder.isDirectory()) {
 				throw new Exception("Specified pathes are not to directory!");
 			}
-
-			System.out.printf("Input Folder=%s, Output Folder=%s\n",
-					inputFolder, outputFolder);
 
 			// make filter to MP3 only
 			FilenameFilter filter = new FilenameFilter() {
@@ -66,14 +66,14 @@ public class Synchronization {
 					outputFolder, filter);
 
 			if (inputFiles == null || inputFiles.size() == 0) {
-				throw new Exception("Nothing to sync!");
+				throw new Exception("Нечего делать. Мызыки нет!");
 			}
 
 			// show files :
-			System.out.println("INPUT! TOTAL=" + inputFiles.size());
+			output.setText("Нашел на компе! Всего=" + inputFiles.size());
 			// printFileList(inputFiles);
 
-			System.out.println("OutPUT!TOTAL=" + outputFiles.size());
+			output.setText("Нашел на Yatour! Всего=" + outputFiles.size());
 			// printFileList(outputFiles);
 
 			// Make sets for checking repeations.
@@ -95,13 +95,13 @@ public class Synchronization {
 			for (File iFile : inputFiles) {
 				fileAdded = false;
 				if (!iFile.getName().endsWith(".mp3")) {
-					System.out.println("File " + iFile.getName()
-							+ " is not mp3!");
+					output.setText("Файл" + iFile.getName()
+							+ " не mp3!");
 					continue;
 				}
 				if (outFileNames.contains(iFile.getName())) {
-					System.out.println("File " + iFile.getName()
-							+ " Already Exists");
+					output.setText("Файл " + iFile.getName()
+							+ " уже в Yatour");
 					continue;
 				}
 
@@ -111,12 +111,12 @@ public class Synchronization {
 						// copy
 						File to = new File(folder.getPath() + File.separator
 								+ iFile.getName());
-						System.out.println("Copy to" + to.getAbsolutePath());
+						output.setText("Копируем в " + to.getAbsolutePath());
 						try {
 							copyFile(iFile, to);
 						} catch (Exception e) {
-							System.out.println("Can't copy file");
-							System.out.println(e);
+							output.setText("Can't copy file");
+							output.setText(e.getMessage());
 						}
 						fileAdded = true;
 						break;
@@ -139,13 +139,11 @@ public class Synchronization {
 							// copy
 							File to = new File(newFolder.getPath()
 									+ File.separator + iFile.getName());
-							System.out
-									.println("Copy to" + to.getAbsolutePath());
+							output.setText("Копируем в " + to.getAbsolutePath());
 							try {
 								copyFile(iFile, to);
 							} catch (Exception e) {
-								System.out.println("Can't copy file");
-								System.out.println(e);
+								output.setText("Не могу скопировать"+e.getMessage());
 							}
 							break;
 						}
@@ -154,7 +152,7 @@ public class Synchronization {
 			}
 		}
 		time = (System.currentTimeMillis() - time) / 1000;
-		System.out.println("Sync time=" + time);
+		output.setText("Готово! Время: " + time+ " сек");
 		return 1;
 	}
 

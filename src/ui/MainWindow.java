@@ -12,11 +12,13 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 
+import core.SyncThread;
 import core.Synchronization;
 
 public class MainWindow extends JFrame {
@@ -24,49 +26,54 @@ public class MainWindow extends JFrame {
 	private JFileChooser localPathChooser;
 	private JFileChooser remotePathChooser;
 
-	private JList<File> outputFilesView = new JList<File>();
-
-	private List<File> outputFiles = new ArrayList<File>();
-
 	public MainWindow() {
 		super("Yatour sync");
 		LeftMenu leftMenu = new LeftMenu();
 		final LibraryMenu libraryMenu = new LibraryMenu();
-		this.setResizable(false);
-		JPanel p = new JPanel();
-		p.setLayout(new BorderLayout(12, 12));
-		p.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-		p.setPreferredSize(new Dimension(1024, 768));
-		this.setContentPane(p);
+		final FlashPanel flashPanel = new FlashPanel();
+		// this.setResizable(false);
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BorderLayout(12, 12));
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+		mainPanel.setPreferredSize(new Dimension(640, 480));
+		this.setContentPane(mainPanel);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+		final JLabel log = new JLabel();
+		log.setText("Ready!");
+		log.setPreferredSize(new Dimension(640, 30));
+		// outputFilesView.setPreferredSize(new Dimension(250, 120));
+		// outputFilesView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		outputFilesView.setPreferredSize(new Dimension(250, 500));
-		outputFilesView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		leftMenu.getJbOpenLocalContainer().addActionListener(
+				new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						File f = onShowChooser(localPathChooser);
+						if (f != null) {
+							libraryMenu.getInputFiles().add(f);
+							libraryMenu.getInputFilesView().setListData(
+									libraryMenu.getInputFiles().toArray(
+											new File[libraryMenu
+													.getInputFiles().size()]));
+						}
+					}
+				});
 
-		leftMenu.getJbOpenLocalContainer().addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File f = onShowChooser(localPathChooser);
-				if (f != null) {
-					libraryMenu.getInputFiles().add(f);
-					libraryMenu.getInputFilesView().setListData(libraryMenu.getInputFiles()
-							.toArray(new File[libraryMenu.getInputFiles().size()]));
-				}
-			}
-		});
-
-		leftMenu.getJbOpenRemoteContainer().addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File f = onShowChooser(remotePathChooser);
-				if (f != null) {
-					outputFiles.add(f);
-					outputFilesView.setListData(outputFiles
-							.toArray(new File[outputFiles.size()]));
-				}
-			}
-		});
+		leftMenu.getJbOpenRemoteContainer().addActionListener(
+				new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						File f = onShowChooser(remotePathChooser);
+						if (f != null) {
+							flashPanel.setOutputFile(f);
+							flashPanel.getJlFlashPosition().setText(
+									f.getAbsolutePath());
+							// outputFilesView.setListData(outputFiles
+							// .toArray(new File[outputFiles.size()]));
+						}
+					}
+				});
 
 		leftMenu.getJbSyncAll().addActionListener(new ActionListener() {
 			@Override
@@ -78,21 +85,21 @@ public class MainWindow extends JFrame {
 								"Source folder/s is not define!");
 						return;
 					}
-					if (outputFilesView.getModel().getSize() == 0) {
+					if (flashPanel.getOutputFile() == null) {
 						JOptionPane.showMessageDialog(MainWindow.this,
 								"Target folder is not define!");
 						return;
 					}
 					List<File> in = null;
-					if (outputFilesView.isSelectionEmpty())
-						outputFilesView.setSelectedIndex(0);
 					if (libraryMenu.getInputFilesView().isSelectionEmpty()) {
 						in = libraryMenu.getInputFiles();
 					} else {
-						in = libraryMenu.getInputFilesView().getSelectedValuesList();
+						in = libraryMenu.getInputFilesView()
+								.getSelectedValuesList();
 					}
-					sync.sync(in,
-							outputFilesView.getSelectedValue());
+
+					new SyncThread(in, flashPanel.getOutputFile(), log).start();
+					// sync.sync(in, flashPanel.getOutputFile());
 				} catch (Exception e1) {
 					System.out.println("Sync is crashed");
 					e1.printStackTrace();
@@ -103,10 +110,12 @@ public class MainWindow extends JFrame {
 		localPathChooser = initFileChooser();
 		remotePathChooser = initFileChooser();
 
-		p.add(libraryMenu, BorderLayout.CENTER);
+		mainPanel.add(libraryMenu, BorderLayout.CENTER);
 
-		p.add(outputFilesView, BorderLayout.LINE_END);
-		p.add(leftMenu, BorderLayout.LINE_START);
+		mainPanel.add(flashPanel, BorderLayout.PAGE_START);
+		mainPanel.add(log, BorderLayout.PAGE_END);
+		mainPanel.add(leftMenu, BorderLayout.LINE_START);
+
 		this.pack();
 		this.setVisible(true);
 	}
@@ -131,14 +140,6 @@ public class MainWindow extends JFrame {
 
 	public void setRemotePathChooser(JFileChooser remotePathChooser) {
 		this.remotePathChooser = remotePathChooser;
-	}
-
-	public List<File> getOutputFiles() {
-		return outputFiles;
-	}
-
-	public void setOutputFiles(List<File> outputFiles) {
-		this.outputFiles = outputFiles;
 	}
 
 	private File onShowChooser(JFileChooser chooser) {
